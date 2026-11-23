@@ -196,13 +196,13 @@ render();
 
 const NEXT_URL='audio/next.mp3'; // was embedded base64
 const SONG_URL='audio/song.mp3'; // was embedded base64
-const PLAYLIST=[ // songs are hosted separately and streamed only when she taps one
-  {t:'Achha Ji Main Haari Chalo',a:'Mohd. Rafi & Asha Bhosle · vocals only',d:154,u:'/_blob/3557348b02b25123fa16b297bfe8b0f2'},
-  {t:'Suno Na Suno Na',a:'Chalte Chalte · vocals only',d:249,u:'/_blob/1bf572e856db01c7dd61fb5332d14183'},
-  {t:'Thodi Si Nok Jhok',a:'LoveLoop Music · romantic duet',d:188,u:'/_blob/911968fbc8ff386ad7c265b3b5eea9d8'},
-  {t:'Meri Patni Mujhe Satati Hai',a:'Mehmood & Om Prakash · Pati Patni',d:273,u:'/_blob/323ccbce134cab2886bc6238e7c7acbc'},
-  {t:'Dhun',a:'Arijit Singh · Saiyaara · vocals only',d:260,u:'/_blob/ed1c082bb98cc4c7aeebe404d9783c44'},
-  {t:'Qayde Se',a:'Arijit Singh · vocals only',d:170,u:'/_blob/14ed746da1ed0117f98b7cd4330cb6eb'}
+const PLAYLIST=[ // local files in audio/ — streamed only when she taps one
+  {t:'Achha Ji Main Haari Chalo',a:'Mohd. Rafi & Asha Bhosle · vocals only',d:154,u:'audio/achha-ji.mp3'},
+  {t:'Suno Na Suno Na',a:'Chalte Chalte · vocals only',d:249,u:'audio/suno-na.mp3'},
+  {t:'Thodi Si Nok Jhok',a:'LoveLoop Music · romantic duet',d:188,u:'audio/thodi-si-nok-jhok.mp3'},
+  {t:'Meri Patni Mujhe Satati Hai',a:'Mehmood & Om Prakash · Pati Patni',d:273,u:'audio/meri-patni.mp3'},
+  {t:'Dhun',a:'Arijit Singh · Saiyaara · vocals only',d:260,u:'audio/dhun.mp3'},
+  {t:'Qayde Se',a:'Arijit Singh · vocals only',d:170,u:'audio/qayde-se.mp3'}
 ];
 // ===== Sound: your song and Next sound, plus synthesised effects =====
 const SND=(()=>{
