@@ -111,7 +111,7 @@ function e1(){
   later(()=>{$('#t1').hidden=false;$('#b1').hidden=false;burst(innerWidth/2,innerHeight*.35,60);SND.play('sparkle')},4200);
 }
 function e0(){}
-function e2(){stopMic();$('#cake').classList.remove('out');$('#fg').style.cssText='';$('#micmsg').hidden=true;$('#mic').hidden=!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia);const b=$('#b2');b.textContent='Blow the candle';b.dataset.done=''}
+function e2(){stopMic();$('#cake').classList.remove('out');$('#fg').style.cssText='';$('#micmsg').hidden=true;$('#micbar').hidden=true;$('#mic').hidden=false;const b=$('#b2');b.textContent='Blow the candle';b.dataset.done=''}
 function e3(){
   $('#rs').innerHTML='';$('#b3').hidden=true;$('#s3').classList.remove('done');$$('.bl').forEach(b=>b.classList.remove('pop'));popped=0;
 }
@@ -390,9 +390,10 @@ document.addEventListener('click',e=>{
   SND.play(s);
 },true);
 // ===== Real blow detection (microphone). The "Blow the candle" button stays as the fallback =====
-// Tune here if it is too easy or too hard to blow out: seconds = how long she must blow.
-const BLOW={calib:.5,seconds:.7,lowShare:.5,maxPitch:.5,margin:2.5,minRms:.03,timeout:45000};
-const M={on:false,ac:null,st:null,raf:0,charge:0,base:0,t0:0,last:0,end:0,sr:48000};
+// Tune here: seconds = how long she must blow, db = how much louder than the room it must be,
+// maxPitch = how voice-like a sound may be (talking and singing are rejected, a blow is just noise).
+const BLOW={calib:.7,seconds:.6,db:10,floor:.008,maxPitch:.55,timeout:60000};
+const M={on:false,ac:null,st:null,raf:0,charge:0,base:0,t0:0,last:0,end:0,sr:48000,heard:false,state:''};
 function blowOut(byMic){
   const b=$('#b2');if(b.dataset.done)return;
   b.dataset.done=1;stopMic();$('#mic').hidden=true;$('#micmsg').hidden=true;
@@ -402,51 +403,61 @@ function blowOut(byMic){
   b.textContent='Next';
 }
 function stopMic(){
+  $('#micbar').hidden=true;
   if(!M.on)return;M.on=false;cancelAnimationFrame(M.raf);
   try{M.st.getTracks().forEach(t=>t.stop())}catch(e){}
   try{M.ac.close()}catch(e){}
   M.st=M.ac=null;SND.duck(false);
 }
 function pitched(td){ // 0..1: how voice-like (a clear pitch) the sound is. A blow is noise, so it scores low.
-  const n=td.length>>2,d=new Float32Array(n);
-  for(let i=0;i<n;i++)d[i]=(td[4*i]+td[4*i+1]+td[4*i+2]+td[4*i+3])/4;
-  let e=0;for(let i=0;i<n;i++)e+=d[i]*d[i];if(e<1e-9)return 0;
-  const sr=M.sr/4,lo=Math.floor(sr/500),hi=Math.floor(sr/70);let best=0;
-  for(let L=lo;L<=hi;L++){let s=0,e2=0;for(let i=0;i+L<n;i++){s+=d[i]*d[i+L];e2+=d[i+L]*d[i+L]}best=Math.max(best,s/Math.sqrt(e*e2+1e-20))}
+  const n=td.length>>2,d=new Float32Array(n);let prev=0;
+  for(let i=0;i<n;i++){const v=(td[4*i]+td[4*i+1]+td[4*i+2]+td[4*i+3])/4;d[i]=v-prev;prev=v} // first difference: deep wind rumble is no longer mistaken for a pitch
+  let e=0;for(let i=0;i<n;i++)e+=d[i]*d[i];if(e<1e-12)return 0;
+  const sr=M.sr/4,lo=Math.floor(sr/400),hi=Math.floor(sr/80);let best=0;
+  for(let L=lo;L<=hi;L++){let s=0,e2=0;for(let i=0;i+L<n;i++){s+=d[i]*d[i+L];e2+=d[i+L]*d[i+L]}best=Math.max(best,s/Math.sqrt(e*e2+1e-24))}
   return best;
 }
+function micSay(k,t){if(M.state!==k){M.state=k;$('#micmsg').textContent=t}}
 async function startMic(){
   const msg=$('#micmsg');msg.hidden=false;
   if(M.on||$('#b2').dataset.done)return;
-  msg.textContent='Allow the microphone when your phone asks…';
+  if(!window.isSecureContext||!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)){M.state='';msg.textContent='The microphone needs a secure (https) link and a normal browser like Chrome or Safari, not an in-app browser. Just tap “Blow the candle”.';return}
+  M.state='';msg.textContent='Allow the microphone when your phone asks…';
   let ac;
   try{ac=new(window.AudioContext||window.webkitAudioContext)();if(ac.resume)ac.resume()}catch(e){msg.textContent='Sound isn’t available here, so just tap “Blow the candle”.';return}
   let st;
   try{st=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}})}
-  catch(e){try{ac.close()}catch(_){}msg.textContent='The microphone isn’t available here, so just tap “Blow the candle”.';return}
+  catch(e){
+    try{ac.close()}catch(_){}
+    msg.textContent=e&&e.name==='NotAllowedError'?'The microphone is blocked for this site. Allow it in your browser’s site settings and try again, or just tap “Blow the candle”.':e&&e.name==='NotFoundError'?'No microphone was found. Just tap “Blow the candle”.':'The microphone couldn’t start ('+(e&&e.name)+'). Just tap “Blow the candle”.';
+    return;
+  }
   if(!$('#s2').classList.contains('on')||$('#b2').dataset.done){st.getTracks().forEach(t=>t.stop());try{ac.close()}catch(_){}return}
-  M.ac=ac;M.st=st;M.on=true;M.charge=0;M.base=0;M.sr=ac.sampleRate;M.t0=performance.now();M.last=M.t0;M.end=M.t0+BLOW.timeout;
+  try{await ac.resume()}catch(e){}
+  M.ac=ac;M.st=st;M.on=true;M.charge=0;M.base=0;M.heard=false;M.state='';M.sr=ac.sampleRate;M.t0=performance.now();M.last=M.t0;M.end=M.t0+BLOW.timeout;
   SND.duck(true); // the song steps back so the microphone does not hear it
   const an=ac.createAnalyser();an.fftSize=2048;an.smoothingTimeConstant=0;ac.createMediaStreamSource(st).connect(an);
-  const td=new Float32Array(an.fftSize),fq=new Float32Array(an.frequencyBinCount),bw=ac.sampleRate/an.fftSize;
-  const i80=Math.max(1,Math.floor(80/bw)),i500=Math.floor(500/bw),i2k=Math.floor(2000/bw),calib=[];
-  msg.textContent='Getting ready…';
+  const td=new Float32Array(an.fftSize),calib=[],fill=$('#micbar i');
+  $('#micbar').hidden=false;micSay('wait','Getting ready… stay quiet for a second');
   (function loop(now){
     if(!M.on)return;
     const dt=Math.min(.1,(now-M.last)/1000);M.last=now;
     an.getFloatTimeDomainData(td);let s=0;for(let i=0;i<td.length;i++)s+=td[i]*td[i];const rms=Math.sqrt(s/td.length);
-    if(now-M.t0<BLOW.calib*1000){calib.push(rms)}
-    else{
-      if(!M.base){M.base=calib.length?calib.reduce((a,b)=>a+b)/calib.length:.005;msg.textContent='Listening… blow gently at the screen 🌬️'}
-      an.getFloatFrequencyData(fq);
-      let low=0,mid=0;for(let i=i80;i<i2k;i++){const p=10**(fq[i]/10);if(i<i500)low+=p;else mid+=p}
-      const share=low/(low+mid+1e-20);
-      const blowing=rms>Math.max(BLOW.minRms,M.base*BLOW.margin)&&share>BLOW.lowShare&&pitched(td)<BLOW.maxPitch;
+    if(!M.base){
+      calib.push(rms);
+      if(now-M.t0>BLOW.calib*1000){const a=calib.slice().sort((x,y)=>x-y),k=Math.max(1,a.length>>1);M.base=Math.max(.002,a.slice(0,k).reduce((x,y)=>x+y,0)/k);micSay('go','Hold the phone close and blow at the bottom edge, where the microphone is')}
+    }else{
+      const db=20*Math.log10((rms+1e-6)/M.base),loud=db>BLOW.db&&rms>BLOW.floor;
+      const blowing=loud&&pitched(td)<BLOW.maxPitch;
       M.charge=Math.max(0,Math.min(1.2,M.charge+(blowing?dt/BLOW.seconds:-dt/1.5)));
-      const c=Math.min(M.charge,1),fg=$('#fg');fg.style.transform='rotate('+(c*28)+'deg) scaleY('+(1-c*.4)+')';fg.style.opacity=1-c*.55; // the flame leans and dims
+      const c=Math.min(M.charge,1),lvl=Math.max(0,Math.min(1,db/25)),fg=$('#fg');
+      fill.style.width=(lvl*100)+'%';
+      fg.style.transform='rotate('+Math.max(c*28,lvl*8)+'deg) scaleY('+(1-c*.4)+')';fg.style.opacity=1-c*.55; // the flame leans and dims
+      if(db>6&&!M.heard){M.heard=true;micSay('heard','I can hear you. Keep blowing…')}
+      else if(!M.heard&&now-M.t0>8000)micSay('quiet','I can’t hear anything yet. Blow closer, at the bottom edge of your phone, where the microphone is.');
       if(M.charge>=1){blowOut(true);return}
     }
-    if(now>M.end){msg.textContent='Didn’t hear a blow. Tap “Blow the candle” instead.';stopMic();return}
+    if(now>M.end){micSay('end','Didn’t hear a blow. Tap “Blow the candle” instead.');stopMic();return}
     M.raf=requestAnimationFrame(loop);
   })(performance.now());
 }
@@ -523,7 +534,7 @@ async function bake(){
   return '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="color-scheme" content="dark"><title>A surprise for '+CFG.name.replace(/[<&]/g,'')+'</title>'+font+css+'</head><body><canvas id="fx"></canvas>'+PRISTINE+'<script id="app-js">'+js+'<\/script></body></html>';
 }
 $('#bP').onclick=()=>{apply();go(0)};
-$('#ed').onclick=()=>go(7);
+if($('#ed'))$('#ed').onclick=()=>go(7);
 $('#bD').onclick=async()=>{
   apply();const h=await bake(),f='surprise-'+(CFG.name.toLowerCase().replace(/[^a-z0-9]+/g,'')||'gift')+'.html';let d=null;
   try{d=await window.claude?.use('downloads')}catch(e){}
