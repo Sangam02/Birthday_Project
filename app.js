@@ -3,7 +3,7 @@ const CFG={
   name:'Varshuu', from:'Gum',
   reasons:['Your laugh makes any room brighter 💗','You remember the little things 😊','You believed in me before I did 🥹','You make ordinary days feel special 😊','The world is kinder with you in it 🥹'],
   // add img:'data:image/jpeg;base64,...' to use a real photo
-  memories:[{c:'Where it began',e:'🌅'},{c:'That one road trip',e:'🚗'},{c:'Best food ever',e:'🍜'},{c:'Us being silly',e:'😄'},{c:'Still my favourite',e:'💛'}],
+  memories:[{c:'Where it began',e:'sunrise'},{c:'That one road trip',e:'car'},{c:'Best food ever',e:'bowl'},{c:'Us being silly',e:'smile'},{c:'Still my favourite',e:'heart'}],
   letter:`Every year, I try to find the perfect words to express what you mean to me, and every year I realize that no words could ever be enough. So this time, I just want to speak from my heart.
 
 You are my only one, my favorite person, my greatest blessing, and the most beautiful part of my life. Out of everyone in this world, you are the one my heart searches for first, the one I want to share every little moment with, and the one I wish to hold close no matter how far apart we are.
@@ -46,6 +46,33 @@ Forever yours. ❤️`,
 // ======================
 const PRISTINE=document.getElementById('app').outerHTML;
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+// ===== Icons (drawn as SVG, so they look the same on every phone) =====
+const svg=(p,f)=>'<svg class="ic" viewBox="0 0 24 24" fill="'+(f||'none')+'" stroke="'+(f?'none':'currentColor')+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+p+'</svg>';
+const HEART='M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z';
+const SPK='<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>';
+const ICON={
+  gift:svg('<rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"/>'),
+  heart:svg('<path d="'+HEART+'"/>'),
+  heartFill:svg('<path d="'+HEART+'"/>','currentColor'),
+  vol:svg(SPK+'<path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>'),
+  volx:svg(SPK+'<line x1="22" x2="16" y1="9" y2="15"/><line x1="16" x2="22" y1="9" y2="15"/>'),
+  mic:svg('<path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/>'),
+  pencil:svg('<path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/>'),
+  headphones:svg('<path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/>'),
+  sunrise:svg('<path d="M12 2v8"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m8 6 4-4 4 4"/><path d="M16 18a4 4 0 0 0-8 0"/>'),
+  car:svg('<path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/>'),
+  bowl:svg('<path d="M12 21a9 9 0 0 0 9-9H3a9 9 0 0 0 9 9Z"/><path d="M7 21h10"/><path d="M19.5 12 22 6"/><path d="M16.25 3c.27.1.8.53.75 1.36-.06.83-.93 1.2-1 2.02-.05.78.34 1.24.73 1.62"/><path d="M11.25 3c.27.1.8.53.74 1.36-.05.83-.93 1.2-.98 2.02-.06.78.33 1.24.72 1.62"/><path d="M6.25 3c.27.1.8.53.75 1.36-.06.83-.93 1.2-1 2.02-.05.78.34 1.24.74 1.62"/>'),
+  smile:svg('<circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/>')
+};
+$$('[data-ic]').forEach(e=>e.innerHTML=ICON[e.dataset.ic]);
+// ===== Floating hearts in the background =====
+(function(){
+  const bg=document.createElement('div');bg.id='bg';bg.setAttribute('aria-hidden','true');
+  const cols=['#ff8fa3','#c77dff','#ffb3c1','#ff5d8f','#ffd27a'],r=(a,b)=>a+Math.random()*(b-a);let s='';
+  for(let i=0;i<16;i++){const w=r(12,34),t=r(14,26);
+    s+='<svg viewBox="0 0 24 24" style="left:'+r(0,96).toFixed(1)+'%;width:'+w.toFixed(0)+'px;height:'+w.toFixed(0)+'px;color:'+cols[i%5]+';--t:'+t.toFixed(1)+'s;--d:-'+r(0,t).toFixed(1)+'s;--o:'+r(.1,.28).toFixed(2)+';--dx:'+r(-60,60).toFixed(0)+'px;--r:'+r(-25,25).toFixed(0)+'deg"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>'}
+  bg.innerHTML=s;document.body.prepend(bg);
+})();
 $$('[data-n]').forEach(e=>e.textContent=CFG.name);
 $('[data-from]').textContent='Made by '+CFG.from+', just for you';
 $('[data-from2]').textContent='With love, '+CFG.from;
@@ -181,7 +208,7 @@ function render(){$('#sky').innerHTML='';$('#car').innerHTML='';
 CFG.reasons.slice(0,5).forEach((r,i)=>{
   const b=document.createElement('div');b.className='bl';b.style.cssText=`left:${pos[i][0]}%;top:${pos[i][1]}px;background:${bc[i]};animation-delay:${i*.4}s`;
   b.onclick=()=>{if(b.classList.contains('pop'))return;b.classList.add('pop');const q=b.getBoundingClientRect();burst(q.left+31,q.top+38,40);SND.play('pop');
-    const li=document.createElement('li');li.style.setProperty('--c',bc[i]);li.innerHTML='<b>REASON NO.'+(i+1)+' 💘</b>';li.append(r);popped++;$('#rs').prepend(li);
+    const li=document.createElement('li');li.style.setProperty('--c',bc[i]);li.innerHTML='<b>REASON NO.'+(i+1)+' '+ICON.heartFill+'</b>';li.append(r);popped++;$('#rs').prepend(li);
     if(popped>=CFG.reasons.slice(0,5).length)later(()=>{$('#s3').classList.add('done');$('#b3').hidden=false},600)};
   $('#sky').append(b)});
 
@@ -189,7 +216,7 @@ CFG.reasons.slice(0,5).forEach((r,i)=>{
 CFG.memories.forEach((m,i)=>{
   const d=document.createElement('div');d.className='pol';
   const bg=m.img?`background-image:url(${m.img})`:`background:linear-gradient(${140+i*30}deg,${bc[i%5]}55,#3a1a4d)`;
-  d.innerHTML=`<div class="ph" style="${bg}">${m.img?'':m.e}</div><span></span>`;d.querySelector('span').textContent=m.c;$('#car').append(d)});
+  d.innerHTML=`<div class="ph" style="${bg}">${m.img?'':(ICON[m.e]||ICON.heart)}</div><span></span>`;d.querySelector('span').textContent=m.c;$('#car').append(d)});
 
 }
 render();
@@ -353,7 +380,7 @@ const SND=(()=>{
 })();
 $('#snd').onclick=()=>{
   if(!SND.running()){SND.unlock();setTimeout(()=>SND.play('sparkle'),250);return}
-  SND.mute(!SND.muted);$('#snd').textContent=SND.muted?'🔇':'🔊'};
+  SND.mute(!SND.muted);$('#snd').innerHTML=SND.muted?ICON.volx:ICON.vol};
 document.addEventListener('click',e=>{
   const b=e.target.closest('.btn,.lg button');if(!b)return;
   let s='tap';
@@ -457,7 +484,7 @@ let lastI=-1;
 $('#car').addEventListener('scroll',()=>{const c=$('#car'),w=c.firstElementChild?c.firstElementChild.offsetWidth+16:1,i=Math.round(c.scrollLeft/w);if(i!==lastI){if(lastI>=0)SND.play('shutter');lastI=i}},{passive:true});
 
 // ===== Builder =====
-const PH=[],EM=['🌅','🚗','🍜','😄','💛'];
+const PH=[],EM=['sunrise','car','bowl','smile','heart'];
 $('#fm').innerHTML='<label>Her name</label><input id="fN"><label>Your name</label><input id="fF"><label>5 balloon reasons (emoji welcome)</label>'+'<input class="fr" maxlength="70">'.repeat(5)+'<label>Memories: caption + photo (photo optional)</label>'+'<div class="mr"><input class="fc" maxlength="30" placeholder="Caption"><input class="fp" type="file" accept="image/*"></div>'.repeat(5)+'<label>Letter (skip the “Dear…” line, it’s added for you)</label><textarea id="fL" rows="9"></textarea><label>Letter in Hindi (optional, adds the हिंदी switch)</label><textarea id="fH" rows="9"></textarea>';
 $('#fN').value=CFG.name;$('#fF').value=CFG.from;$('#fL').value=CFG.letter;$('#fH').value=CFG.letterHi||'';
 $$('.fr').forEach((e,i)=>e.value=CFG.reasons[i]||'');
