@@ -65,6 +65,56 @@ const ICON={
   smile:svg('<circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/>')
 };
 $$('[data-ic]').forEach(e=>e.innerHTML=ICON[e.dataset.ic]);
+
+// ===== PWA: dynamic app name + letter icon from CFG.name =====
+let _manifestURL='';
+function makeLetterIcon(name,size){
+  const c=document.createElement('canvas');c.width=c.height=size;const g=c.getContext('2d');
+  const grd=g.createLinearGradient(0,0,size,size);
+  grd.addColorStop(0,'#3a1a4d');grd.addColorStop(.55,'#6b2d5c');grd.addColorStop(1,'#ff6f91');
+  g.fillStyle=grd;g.beginPath();
+  const r=size*.18;g.moveTo(r,0);g.arcTo(size,0,size,size,r);g.arcTo(size,size,0,size,r);g.arcTo(0,size,0,0,r);g.arcTo(0,0,size,0,r);g.closePath();g.fill();
+  // soft glow ring
+  g.strokeStyle='#ffd27a66';g.lineWidth=size*.035;g.beginPath();g.arc(size/2,size/2,size*.38,0,6.283);g.stroke();
+  const letter=((name||'?').trim()[0]||'?').toUpperCase();
+  g.fillStyle='#ffd27a';g.textAlign='center';g.textBaseline='middle';
+  g.font='700 '+(size*.52)+'px Fraunces,Georgia,serif';
+  g.fillText(letter,size/2,size/2+size*.02);
+  return c.toDataURL('image/png');
+}
+function setupPWA(){
+  const name=(CFG.name||'Birthday').trim()||'Birthday';
+  document.title=name;
+  const appleTitle=document.querySelector('meta[name="apple-mobile-web-app-title"]');
+  if(appleTitle)appleTitle.content=name;
+  const icon192=makeLetterIcon(name,192),icon512=makeLetterIcon(name,512);
+  const apple=document.getElementById('apple-touch-icon');
+  if(apple)apple.href=icon192;
+  let fav=document.getElementById('app-favicon');
+  if(!fav){fav=document.createElement('link');fav.id='app-favicon';fav.rel='icon';fav.type='image/png';document.head.appendChild(fav)}
+  fav.href=icon192;
+  const manifest={
+    name, short_name:name.slice(0,12),
+    description:'A birthday surprise for '+name,
+    start_url:'./', scope:'./',
+    display:'standalone', orientation:'portrait',
+    background_color:'#1d0f2b', theme_color:'#1d0f2b',
+    icons:[
+      {src:icon192,sizes:'192x192',type:'image/png',purpose:'any'},
+      {src:icon512,sizes:'512x512',type:'image/png',purpose:'any maskable'}
+    ]
+  };
+  if(_manifestURL)URL.revokeObjectURL(_manifestURL);
+  _manifestURL=URL.createObjectURL(new Blob([JSON.stringify(manifest)],{type:'application/manifest+json'}));
+  let link=document.getElementById('app-manifest');
+  if(!link){link=document.createElement('link');link.id='app-manifest';link.rel='manifest';document.head.appendChild(link)}
+  link.href=_manifestURL;
+}
+setupPWA();
+if('serviceWorker' in navigator){
+  addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+}
+
 // ===== Floating hearts in the background =====
 (function(){
   const bg=document.createElement('div');bg.id='bg';bg.setAttribute('aria-hidden','true');
@@ -512,6 +562,7 @@ function apply(){
   $('[data-from2]').textContent='With love, '+CFG.from;
   render();
   $('#lg').hidden=!CFG.letterHi;if(!CFG.letterHi)LANG='en';setLang(LANG);
+  setupPWA();
 }
 async function toB64(url){
   const r=await fetch(url);const buf=await r.arrayBuffer();

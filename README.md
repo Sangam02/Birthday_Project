@@ -20,3 +20,12 @@ npx serve .
 ## Deploy
 
 Upload the whole folder (including `audio/`) to any static host (GitHub Pages, Netlify, etc.) over HTTPS.
+
+## Install as an app (PWA)
+
+On HTTPS (e.g. Vercel), Chrome/Safari can install it:
+
+- **Android:** browser menu → Install app / Add to Home screen  
+- **iPhone:** Share → Add to Home Screen  
+
+The app name and icon letter follow `CFG.name` in `app.js` (Varshuu → “Varshuu” + **V**). It opens full screen (`standalone`).
